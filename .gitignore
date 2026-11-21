@@ -1,0 +1,11 @@
+.DS_Store
+build/
+build.log
+dist/
+# Zasoby/ to kopie z ~/mame-d70, nadpisywane przy budowaniu – poza dwoma plikami,
+# ktore musza byc w repozytorium, bo bez nich program sie nie zbuduje.
+Zasoby/*
+!Zasoby/hero.jpg
+!Zasoby/t6963c_0101.bin
+Xcode/BHD70.xcodeproj/
+Xcode/Resources/

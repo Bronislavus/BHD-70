@@ -1,0 +1,171 @@
+# BHD-70 – projekt Xcode: aplikacja na Maca + wtyczka AUv3 (instrument stereo).
+# Nie edytuj pliku .xcodeproj – zmiany wprowadzaj tutaj; build.sh odtwarza projekt przy każdym budowaniu.
+#
+#   BHD70     aplikacja „BHD-70” (bez piaskownicy, pl.bronek.bhd70)
+#   BHD70AU   wtyczka AUv3 „Bronisław Hońca: BHD-70” (rozszerzenie wewnątrz aplikacji, piaskownica)
+#
+# IDENTYFIKATOR WTYCZKI (aumu BD70 BHnc) – po pierwszym wydaniu NIE ZMIENIAĆ (psuje projekty w DAW).
+name: BHD70
+options:
+  deploymentTarget:
+    macOS: "13.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.9"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ${TEAM_ID}
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_HARDENED_RUNTIME: YES
+    ARCHS: "$(ARCHS_STANDARD)"
+    CLANG_CXX_LANGUAGE_STANDARD: "c++17"
+    CLANG_CXX_LIBRARY: "libc++"
+    BH_APP_GROUP: "$(TeamIdentifierPrefix)pl.bronek.bhd70"
+    # Moja wersja: program moze siegnac po kosci do ~/mame-d70, zeby testowanie
+    # nie wymagalo przechodzenia przez okno powitalne. build.sh usuwa ten wpis
+    # przy "bash build.sh publikacja" -- wersja na strone ma zachowywac sie u mnie
+    # dokladnie tak samo jak u kogos obcego.
+    SWIFT_ACTIVE_COMPILATION_CONDITIONS: BH_MOJA_WERSJA
+
+targetTemplates:
+  Wspolne:
+    sources:
+      - path: ../Sources
+      - path: ../Engine
+    settings:
+      base:
+        SWIFT_OBJC_BRIDGING_HEADER: ../Engine/BHD70-Bridging-Header.h
+        USER_HEADER_SEARCH_PATHS: ../Engine
+    dependencies:
+      - sdk: CoreMIDI.framework
+
+schemes:
+  BHD70:
+    build:
+      targets:
+        BHD70: all
+    run:
+      config: Release
+    archive:
+      config: Release
+
+targets:
+  BHD70:
+    templates: [Wspolne]
+    type: application
+    platform: macOS
+    sources:
+      - path: ../App
+      - path: ../Zasoby/hero.jpg
+        buildPhase: resources
+      - path: ../Zasoby/t6963c_0101.bin
+        buildPhase: resources
+      - path: Resources
+        optional: true
+    dependencies:
+      - target: BHD70AU
+    entitlements:
+      path: App.entitlements
+      properties:
+        com.apple.security.app-sandbox: false
+        com.apple.security.application-groups: [$(BH_APP_GROUP)]
+    info:
+      path: Info.plist
+      properties:
+        CFBundleName: BHD-70
+        CFBundleDisplayName: BHD-70
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, pl]
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.music
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        NSHighResolutionCapable: true
+        NSPrincipalClass: NSApplication
+        BHAppGroup: $(BH_APP_GROUP)
+        NSHumanReadableCopyright: "© 2026 Bronisław Hońca · kontakt@bronislawhonca.pl"
+    settings:
+      base:
+        PRODUCT_NAME: BHD-70
+        PRODUCT_MODULE_NAME: BHD70
+        PRODUCT_BUNDLE_IDENTIFIER: pl.bronek.bhd70
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+  BHD70AU:
+    templates: [Wspolne]
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: ../AUv3
+      # Do wtyczki wchodzi zawsze emulator i kroj pisma wyswietlacza.
+      # roms/ i nvram/ (pliki Rolanda) sa tylko w mojej wersji -- "bash build.sh".
+      # Wersja na strone ("bash build.sh publikacja") ich nie ma i wtedy te dwa
+      # wpisy sa pomijane; uzytkownik wskazuje zgranie wlasnego D-70 sam.
+      - path: ../Zasoby/t6963c_0101.bin
+        buildPhase: resources
+      - path: ../Zasoby/roms
+        type: folder
+        buildPhase: resources
+        optional: true
+      - path: ../Zasoby/nvram
+        type: folder
+        buildPhase: resources
+        optional: true
+      - path: ../Zasoby/hero.jpg
+        buildPhase: resources
+    entitlements:
+      path: AU.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups: [$(BH_APP_GROUP)]
+    info:
+      path: AU-Info.plist
+      properties:
+        CFBundleDisplayName: BHD-70
+        BHAppGroup: $(BH_APP_GROUP)
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, pl]
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSHumanReadableCopyright: "© 2026 Bronisław Hońca · kontakt@bronislawhonca.pl"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.AudioUnit-UI
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).AudioUnitViewController
+          NSExtensionAttributes:
+            AudioComponents:
+              - name: "Bronisław Hońca: BHD-70"
+                description: BHD-70
+                factoryFunction: $(PRODUCT_MODULE_NAME).AudioUnitViewController
+                manufacturer: BHnc
+                subtype: BD70
+                type: aumu
+                version: 65536
+                sandboxSafe: true
+                tags: [Synthesizer]
+    settings:
+      base:
+        PRODUCT_NAME: BHD70AU
+        PRODUCT_MODULE_NAME: BHD70AU
+        PRODUCT_BUNDLE_IDENTIFIER: pl.bronek.bhd70.au
+        SKIP_INSTALL: YES
+    postBuildScripts:
+      # Emulator musi leżeć w Contents/MacOS (program, nie zasób) i być podpisany,
+      # zanim Xcode zapieczętuje wtyczkę – inaczej jądro zabija go przy uruchomieniu.
+      - name: Emulator do wtyczki
+        basedOnDependencyAnalysis: false
+        script: |
+          set -e
+          CEL="$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/MacOS"
+          ZROD="$SRCROOT/../Zasoby"
+          [ -x "$ZROD/d70" ] || { echo "error: brak $ZROD/d70 – uruchom bash build.sh"; exit 1; }
+          mkdir -p "$CEL"
+          rm -rf "$CEL/lib" "$CEL/d70" "$CEL/nvram"
+          cp -R "$ZROD/lib" "$CEL/lib"
+          cp "$ZROD/d70" "$CEL/d70"
+          ID="${EXPANDED_CODE_SIGN_IDENTITY:--}"
+          for F in "$CEL/lib/"*.dylib "$CEL/d70"; do
+            codesign --force --options runtime -s "$ID" "$F"
+          done
