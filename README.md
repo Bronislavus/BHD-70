@@ -52,14 +52,20 @@ Requires macOS 13 (Ventura) or later, Apple Silicon or Intel.
 
 ## Download
 
-The program is **free** and always will be. It is currently in **beta**, handed out
-personally so that I can hear how it works for you: write to **kontakt@bronislawhonca.pl**
-and I will send you the signed, notarised build.
+The program is **free** and always will be.
 
-More about this and my other programs: **<https://www.bronislawhonca.pl>**
+**[Download the latest release](https://github.com/Bronislavus/BHD-70/releases/latest)** —
+a signed and notarised build for macOS 13 or later, Apple Silicon and Intel. It is also on my
+site, together with everything else I make: **<https://www.bronislawhonca.pl>**
 
-Found a bug or have an idea? Open an issue here, or use **Help → Report a Problem or Idea…**
-in the app, which opens a ready-made e-mail. The app itself checks nothing online.
+This is a **beta**: it works and it plays, but every Mac, every audio interface and every D-70
+is a little different. **Tell me how it goes** — what broke, what is missing, what you would
+like it to do. Open an issue here, or write to **kontakt@bronislawhonca.pl**. The app has
+**Help → Report a Problem or Idea…**, which opens a ready-made e-mail with your version
+details; you send it yourself. The app never contacts anything online on its own.
+
+Every message is read, and I would rather hear that something does not work than not hear
+from you at all.
 
 ## Building it yourself
 
